@@ -1,0 +1,50 @@
+{% extends "BlogPost/base.html" %}
+
+{% load bootstrap4 %}
+
+{% block page_header %}
+
+  <h2>Account</h2>
+
+{% endblock page_header %}
+
+{% block content %}
+  <div class="pb-2 mb-2 border-bottom">
+    {% if not user.email_is_verified and user.pending_email is None %}
+      <h4>Email (unverified): {{ user.email }}</h4>
+      <h4>Remaining time before account deletion: {{ remaining_days }} days and {{ remaining_hours }} hours</h4>
+
+      <form method="post">
+        {% csrf_token %}
+        <input class="btn btn-secondary" type="submit" value="Resend verification email">
+      </form>
+  
+    {% elif user.pending_email %}
+      <h4>Email: {{ user.email }}</h4>
+      <h4>Pending email: {{ user.pending_email }}</h4>
+
+      <form method="post" class="mb-3">
+        {% csrf_token %}
+        <input class="btn btn-secondary" type="submit" value="Resend verification email">
+      </form>
+
+      <form method="post" action="{% url 'users:cancel_change_email' %}">
+        {% csrf_token %}
+        <input class="btn btn-secondary" type="submit" value="Cancel email change">
+      </form>
+  
+    {% else %}
+      <h4>Email: {{ user.email }} - <a href="{% url 'users:change_email' %}">Change</a></h4>
+    {% endif %}
+  </div>
+
+  <div class="pb-2 mb-2 border-bottom">
+    <h4>Password - <a href="{% url 'users:change_password' %}">Change</a></h4>
+  </div>
+
+  <div class="pb-2 mb-2 border-bottom">
+    <a href="{% url 'users:delete_account' %}" class="btn btn-danger">Delete my account</a>
+  </div>
+
+{% endblock content %}
+

@@ -1,0 +1,27 @@
+{% extends "BlogPost/base.html" %}
+
+{% load bootstrap4 %}
+
+{% block page_header %}
+
+  <h4>Warning: Deleting your account is a permanent action. All your data, including your profile, posts, and settings,  will be permanently removed and cannot be recovered.
+  If you're sure, please confirm your decision below.</h4>
+
+{% endblock page_header %}
+
+{% block content %}
+
+  <form method="POST">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    
+    <div class="mb-3">
+      <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
+    </div>
+
+    <button type="submit" class="btn btn-danger">Delete My Account</button>
+
+    <a href="{% url 'users:account' %}" class="btn btn-secondary">Cancel</a>
+  </form>
+
+{% endblock content %}

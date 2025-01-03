@@ -1,0 +1,9 @@
+b_env
+__pycache__
+*.sqlite3
+.env
+run_blog_venv.bat
+run_blog_server.bat
+run_blog_delete_users.bat
+blog_project.sublime-workspace
+blog_project.sublime-project

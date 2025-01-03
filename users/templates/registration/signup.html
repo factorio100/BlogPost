@@ -1,0 +1,26 @@
+{% extends "BlogPost/base.html" %}
+
+{% load bootstrap4 %}
+
+{% block page_header %}
+
+  <h2>Sign up to BlogPost</h2>
+
+{% endblock page_header %}
+
+{% block content %}
+
+  <form method="post">
+    {% csrf_token %}
+    {% bootstrap_form form exclude="recaptcha" %}
+    
+    <div class="mb-3">
+      <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
+    </div>
+    
+    <button name="submit" class="btn btn-primary">Sign up</button>
+
+    <input type="hidden" name="next" value="{% url 'BlogPost:home' %}" />
+  </form>
+
+{% endblock content %}

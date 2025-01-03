@@ -1,0 +1,29 @@
+{% extends "BlogPost/base.html" %}
+
+{% block page_header %}
+
+  <h2>Profile</h2>
+
+{% endblock page_header %}
+
+{% block content %}
+
+  <div class="pb-2 mb-2 border-bottom">
+    <h4>Name: {{ user_profile.username }}</h4>
+  </div>
+  {% if user.profile_picture %}
+    <h4>Profile picture:</h4>
+    <div class="image-container">
+      <a href="{{ user_profile.profile_picture.url }}" target="_blank">
+        <img src="{{ user_profile.profile_picture.url }}" style="width: 300px; height: 300px; object-fit: cover;">  
+      </a>
+    </div>
+  {% else %}
+    <h4>No profile picture.</h4>
+  {% endif %}
+
+  {% if request.user.is_authenticated and request.user == user_profile %}
+    <a href="{% url 'users:edit_profile' user.id %}">Edit profile</a>
+  {% endif %}
+  
+{% endblock content %}

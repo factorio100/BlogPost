@@ -1,0 +1,118 @@
+{% load bootstrap4 %}
+
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1,
+    shrink-to-fit=no">
+  {% if title %}
+    <title>BlogPost - {{ title }}</title>
+  {% else %}
+    <title>BlogPost</title>
+  {% endif %}
+
+  {% bootstrap_css %}
+  {% bootstrap_javascript jquery='full' %}
+
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-md navbar-light bg-light mb-4 border">
+
+    <a class="navbar-brand" href="{% url 'BlogPost:home' %}">BlogPost</a>
+        
+    <button class="navbar-toggler" type="button" data-toggle="collapse"
+      data-target="#navbarCollapse" aria-controls="navbarCollapse"
+      aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav ml-auto">
+        {% if user.is_authenticated %}
+          {% if user.profile_picture %}
+            <li class="nav-item">
+              <img src="{{ user.profile_picture.url }}" 
+                style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;">
+            </li>
+          {% else %}
+              <img src="{% static 'default_profile_picture.jpg' %}" 
+                style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;">
+          {% endif %}
+          <li class="nav-item">
+            <span class="navbar-text"}>{{ user.username }}.</span>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'BlogPost:my_posts' %}">My posts</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'BlogPost:new_post' %}">Create new post</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'users:profile' user.id %}">Profile</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'users:account' %}">Account</a>
+          </li>
+          <li class="nav-item">
+              <form action="{% url 'users:logout' %}" method="post">
+                {% csrf_token %}
+                {% buttons %}
+                  <button name="submit" class="btn btn-primary">Log out</button>
+                {% endbuttons %}
+              </form>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'users:signup' %}">Sign up</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'users:login' %}">Log in</a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+
+  </nav>
+
+  {% if messages %}
+    <div class="messages">
+      <ul>
+        {% for message in messages %}
+          <li class="{{ message.tags }}">
+            {{ message }}
+            <button class="close-btn" onclick="this.parentElement.style.display='none';" aria-label="Close">×</button>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  {% if user.is_authenticated %}
+    {% if not user.email_is_verified or user.pending_email %}
+      <div class="alert alert-warning" role="alert">
+        {% if not user.email_is_verified and user.pending_email is None %}
+          Accounts with unverified emails will be deleted. Please check your emails and account page.
+        {% elif user.pending_email %}
+          To use your new email, you need to verify it. Please check your emails at <strong>{{user.pending_email}}</strong>.
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endif %}
+
+  <main role="main" class="container">
+    <div class="pb-2 mb-2 border-bottom">
+      {% block page_header %}{% endblock page_header %}
+    </div>
+    <div>
+      {% block content %}{% endblock content %}
+    </div>
+  </main>
+
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  
+  </body>
+
+</html>
+

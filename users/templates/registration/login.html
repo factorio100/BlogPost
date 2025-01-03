@@ -1,0 +1,27 @@
+{% extends "BlogPost/base.html" %}
+
+{% load bootstrap4 %}
+
+{% block page_header %}
+  <h2>Log in to BlogPost</h2>
+{% endblock page_header %}
+
+{% block content %}
+  <form method="post">
+    {% csrf_token %}
+    {% bootstrap_form form exclude="recaptcha" %}
+
+    <!-- render the reCAPTCHA widget -->
+    <div class="mb-3">
+      <div class="g-recaptcha" data-sitekey="{{ site_key }}"></div>
+    </div>
+
+    <div class="mb-3">
+      <button name="submit" class="btn btn-primary">Log in</button>
+    </div>
+
+    <input type="hidden" name="next" value="{% url 'BlogPost:home' %}" />
+  </form>
+  
+  <a href="{% url 'users:forgotten_password_email' %}">Forgotten password ?</a>
+{% endblock content %}

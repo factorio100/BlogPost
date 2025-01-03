@@ -1,0 +1,25 @@
+{% extends "BlogPost/base.html" %}
+
+{% block page_header %}
+  {% if my_posts %}
+    <h2>My posts:</h2>
+  {% else %}
+    <h2>You have currently no posts.</h2>
+  {% endif %}
+
+{% endblock page_header %}
+
+{% block content %}
+
+  {% for post in my_posts %}
+    <div class="card mb-3">
+      <h4 class="card-header">
+        {{ post.date|date:'d M Y | H:i' }}
+      </h4>
+      <div class="card-body">
+      	<h3><a href="{% url 'BlogPost:post' post.id %}">{{ post }}</a></h3>
+      </div>
+    </div>
+  {% endfor %}
+
+{% endblock content %}

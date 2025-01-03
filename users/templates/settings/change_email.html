@@ -1,0 +1,21 @@
+{% extends "BlogPost/base.html" %}
+
+{% load bootstrap4 %}
+
+{% block page_header %}
+
+  <h2>Change your email</h2>
+
+{% endblock page_header %}
+
+{% block content %}
+
+  <form method='post'>
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    {% buttons %}
+      <button name="submit" class="btn btn-primary">Save</button>
+    {% endbuttons %}
+  </form>
+
+{% endblock content %}

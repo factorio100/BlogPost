@@ -1,0 +1,27 @@
+{% extends "BlogPost/base.html" %}
+
+{% block page_header %}
+
+  {% if posts %}
+    <h2>Browse all the posts:</h2>
+  {% else %}
+    <h2>There are currently no posts.</h2>
+  {% endif %}
+
+{% endblock page_header %}
+
+{% block content %}
+
+  {% for post in posts %}
+    <div class="card mb-3">
+      <h4 class="card-header">
+            By <a class="nav-link d-inline p-0" href="{% url 'users:profile' post.user.id %}">{{ post.user }}</a> 
+            | {{ post.date|date:'d M Y | H:i' }}
+      </h4>
+      <div class="card-body">
+        <h3><a href="{% url 'BlogPost:post' post.id %}">{{ post }}</a></h3>
+      </div>
+    </div>
+  {% endfor %}
+    
+{% endblock content %}
