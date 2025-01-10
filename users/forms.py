@@ -5,6 +5,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django_recaptcha.fields import ReCaptchaField
+from django.forms.widgets import ClearableFileInput
 
 User = get_user_model()
 
@@ -33,10 +34,16 @@ class CustomUserCreationForm(UserCreationForm):
         return email
         
 # settings
+class CustomClearableFileInput(ClearableFileInput):
+    template_name = 'widgets/clearable_file_input.html' # custom template 
+
 class CustomUserProfileForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = ['username', 'profile_picture']
+        widgets = {
+            'profile_picture': CustomClearableFileInput(),
+        }
 
 class ChangeEmailForm(forms.ModelForm):
     password = forms.CharField(label="Password", widget=forms.PasswordInput, required=True)

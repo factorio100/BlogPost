@@ -137,6 +137,7 @@ def profile(request, user_id):
 
 @login_required
 def edit_profile(request, user_id):
+    user = request.user
     user_profile = User.objects.get(id=user_id)
     if user_profile != request.user:
         raise Http404
@@ -144,6 +145,9 @@ def edit_profile(request, user_id):
     if request.method == 'POST':
         form = CustomUserProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
+            if 'clear_profile_picture' in request.POST:
+                user.profile_picture.delete()  # deletes the file from storage
+                user.profile_picture = None   # clears the field in the model
             form.save()
             return redirect('users:profile', user_id=user_id)  
     else:

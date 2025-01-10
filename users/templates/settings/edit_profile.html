@@ -12,29 +12,35 @@
 
   <form method='post' enctype="multipart/form-data">
     {% csrf_token %}
+
     <div class="pb-2 mb-2 border-bottom">
-      {% for field in form %}
-        {% if field.name != "profile_picture" %}
-          {{ field.label_tag }}
-          {{ field }}
-        {% endif %}
-      {% endfor %}
+      {{ form.username.label_tag }}
+      {{ form.username }}
+        
     </div>
     
     <div class="pb-2 mb-2 border-bottom">
-      {% if user.profile_picture %}
-        <div>
-          <img src="{{ user.profile_picture.url }}" style="max-width: 150px; max-height: 150px;" alt="Profile Picture">
-        </div>
-      {% endif %}
-    
-      <div class="mt-3">
-        {{ form.profile_picture.label_tag }}
-        {{ form.profile_picture }}
+      {{ form.profile_picture.label_tag }}
+      <div>
+        {{ form.profile_picture.as_widget }}
       </div>
+      <div class="mt-3">
+        {% if user.profile_picture %}
+          <div>
+            <a href="{{ user.profile_picture.url }}" target="_blank">
+              <img src="{{ user.profile_picture.url }}" style="max-width: 150px; max-height: 150px;" alt="Profile Picture">
+            </a>
+          </div>
 
+          <div>
+            <label for="clear-profile-picture">
+              <input type="checkbox" name="clear_profile_picture" id="clear-profile-picture"> Remove current picture
+            </label>
+          </div>
+        {% endif %}
+      </div>
       {% buttons %} 
-        <button name="submit" class="btn btn-primary mt-3">Save changes</button>
+        <button name="submit" class="btn btn-primary">Save changes</button>
       {% endbuttons %}
     </div>
   </form>
