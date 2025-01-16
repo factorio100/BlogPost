@@ -32,7 +32,8 @@ class CustomUserCreationForm(UserCreationForm):
             if CustomUser.objects.filter(email=email).exists():
                 raise forms.ValidationError("This email is already in use.")
         return email
-        
+    
+
 # settings
 class CustomClearableFileInput(ClearableFileInput):
     template_name = 'widgets/clearable_file_input.html' # custom template 
@@ -54,7 +55,7 @@ class ChangeEmailForm(forms.ModelForm):
         labels = {'pending_email': 'New email'}
 
     def clean_pending_email(self): 
-        new_email = self.cleaned_data.get('pending_email').lower()  # Convert to lowercase
+        new_email = self.cleaned_data.get('pending_email').lower()  # convert to lowercase
         if new_email == self.instance.email:
             raise forms.ValidationError("The new email cannot be the same as the current email.")
 

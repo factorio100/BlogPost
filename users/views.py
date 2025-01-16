@@ -45,7 +45,7 @@ def check_user_token(uidb64, token, token_generator):
 
 def custom_login_view(request):
     if request.method == 'POST':
-        form = CustomLoginForm(data=request.POST)
+        form = CustomLoginForm(data=request.POST) 
         if form.is_valid():
             user = form.get_user()
             login(request, user)

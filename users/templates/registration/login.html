@@ -10,6 +10,8 @@
   <form method="post">
     {% csrf_token %}
     {% bootstrap_form form exclude="recaptcha" %}
+    <!-- displays recaptcha errors -->
+    {{ form.recaptcha.errors }} 
 
     <!-- render the reCAPTCHA widget -->
     <div class="mb-3">
