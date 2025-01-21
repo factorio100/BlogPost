@@ -7,6 +7,7 @@
 {% endblock page_header %}
 
 {% block content %}
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <form method="post">
     {% csrf_token %}
     {% bootstrap_form form exclude="recaptcha" %}
