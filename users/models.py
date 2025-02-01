@@ -28,7 +28,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 	is_staff = models.BooleanField(default=False)
 	is_superuser = models.BooleanField(default=False)
 
-	date_joined = models.DateTimeField(default=timezone.now) # change to auto_now_add=True ?
+	date_joined = models.DateTimeField(auto_now_add=True)  
 
 	USERNAME_FIELD = 'email' # login fields: email, password
 	REQUIRED_FIELDS = ['username'] 
@@ -49,13 +49,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 	objects = CustomBaseUserManager()
 
 	def __str__(self):
-		return self.username # display the username under "Change user" in admin page when clicking on un user
+		return self.username 
 
-class SignupAttemptEmail(models.Model):
-	# store deleted account email, after 15 minutes it will be cleared
+# store deleted account email, will be cleared after 15 minutes
+class SignupAttemptEmail(models.Model): 
 	account_deleted_email = models.EmailField(max_length=50, null=True, blank=True)
-	account_deleted_at = models.DateTimeField(null=True, blank=True)
+	account_deleted_at = models.DateTimeField(auto_now_add=True) 
 	
 class SignupAttemptIpAddress(models.Model):
-	ip_address = models.GenericIPAddressField(null=True, blank=True)
-	signup_date = models.DateTimeField(null=True, blank=True)
+	ip_address = models.GenericIPAddressField(null=True, blank=True, unique=True)
+	signup_date = models.DateTimeField(auto_now_add=True) 

@@ -67,8 +67,8 @@ def custom_logout_view(request):
 # registration
 def signup(request):
     if request.method == 'POST':
-        # Create the form instance with the posted data
         form = CustomUserCreationForm(request.POST)
+
         # Check if the email has recently belonged to a deleted account
         email = request.POST.get('email')
         if SignupAttemptEmail.objects.filter(account_deleted_email=email).exists():
@@ -84,14 +84,14 @@ def signup(request):
         if ip_address_spam >= 2:
             messages.error(request, "Too many signup attempts. Please try again later.")
             return redirect('BlogPost:home')
-        # Validate the form only if the above checks pass
+        
         if form.is_valid():
-            # Create SignupAttemptIpAddress instance
-            SignupAttemptIpAddress.objects.create(
-                ip_address=get_user_ip(request), 
-                signup_date=timezone.now()
-            )  
-    
+            # update or create SignupAttemptIpAddress instance
+            ip_attempt, created = SignupAttemptIpAddress.objects.get_or_create(ip_address=get_user_ip(request))
+            if not created: 
+                ip_attempt.signup_date = timezone.now()
+                ip_attempt.save()
+                
             new_user = form.save()
             login(request, new_user)
 
@@ -317,10 +317,7 @@ def delete_account(request):
                 messages.error(request, 'you must wait before deleting your account due to a change in the email address.')
                 return redirect('users:account')
             
-            SignupAttemptEmail.objects.create(
-                account_deleted_email=user.email,
-                account_deleted_at = timezone.now()
-            )
+            SignupAttemptEmail.objects.create(account_deleted_email=user.email)
     
             user.delete()
             messages.success(request, "Your account has been deleted successfully.")
