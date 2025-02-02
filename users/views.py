@@ -76,21 +76,20 @@ def signup(request):
             return redirect('users:signup') 
 
         # Check for spam based on IP address
-        ip_address_spam = SignupAttemptIpAddress.objects.filter(
+        ip_address_attempt = SignupAttemptIpAddress.objects.filter(
             ip_address=get_user_ip(request),
             signup_date__gt=timezone.now() - SIGNUP_COOLDOWN
         ).count()
-
-        if ip_address_spam >= 2:
+        if ip_address_attempt >= 1:
             messages.error(request, "Too many signup attempts. Please try again later.")
             return redirect('BlogPost:home')
-        
+
         if form.is_valid():
-            # update or create SignupAttemptIpAddress instance
-            ip_attempt, created = SignupAttemptIpAddress.objects.get_or_create(ip_address=get_user_ip(request))
-            if not created: 
-                ip_attempt.signup_date = timezone.now()
-                ip_attempt.save()
+            # update date or create SignupAttemptIpAddress instance if new ip address
+            ip_address, created = SignupAttemptIpAddress.objects.get_or_create(ip_address=get_user_ip(request))
+            if not created:  
+                ip_address.signup_date = timezone.now()
+                ip_address.save()
                 
             new_user = form.save()
             login(request, new_user)

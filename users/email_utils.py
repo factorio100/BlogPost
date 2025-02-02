@@ -11,7 +11,7 @@ from django.contrib import messages
 from django.urls import reverse
 from django.conf import settings
 
-SIGNUP_COOLDOWN = timedelta(minutes=15) 
+SIGNUP_COOLDOWN = timedelta(minutes=10) 
 FORGOTTEN_PASSWORD_COOLDOWN = timedelta(minutes=15)
 
 def cooldown(COOLDOWN, last_email_sent):

@@ -59,3 +59,5 @@ class SignupAttemptEmail(models.Model):
 class SignupAttemptIpAddress(models.Model):
 	ip_address = models.GenericIPAddressField(null=True, blank=True, unique=True)
 	signup_date = models.DateTimeField(auto_now_add=True) 
+
+	
