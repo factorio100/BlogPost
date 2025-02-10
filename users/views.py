@@ -74,7 +74,7 @@ def signup(request):
         if SignupAttemptEmail.objects.filter(account_deleted_email=email).exists():
             messages.error(request, "You must wait 15 minutes before resigning up with this email.")
             return redirect('users:signup') 
-
+        
         # Check for spam based on IP address
         ip_address_attempt = SignupAttemptIpAddress.objects.filter(
             ip_address=get_user_ip(request),
