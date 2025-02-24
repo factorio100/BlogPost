@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from .email_utils import send_verification_email, SIGNUP_COOLDOWN
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_str
-from .tokens import email_verification_token, account_recovery_token
+from .tokens import email_verification_token_generator, account_recovery_token_generator
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib import messages
 from datetime import timedelta
@@ -14,20 +14,28 @@ from django.utils import timezone
 from .models import SignupAttemptEmail, SignupAttemptIpAddress
 from django.contrib.sessions.models import Session
 from django.conf import settings
-import logging
-
-logger = logging.getLogger(__name__)
 
 User = get_user_model() # to reference the user model as User instead of CustomUser
+
+def get_user_sessions(user):
+    """
+    Retrieve all active session keys for the given user.
+    """
+    sessions = Session.objects.filter(expire_date__gte=timezone.now())  # Get all non-expired sessions
+    user_sessions = [
+        session.session_key for session in sessions
+        if session.get_decoded().get('_auth_user_id') == str(user.id)
+    ]
+    return user_sessions
 
 def get_user_ip(request):
     # Check for IP address in the 'X-Forwarded-For' header (used when behind a proxy)
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
-        # 'X-Forwarded-For' can contain multiple IPs, so take the first one
+        # Take the first IP if there are multiples
         ip = x_forwarded_for.split(',')[0]
     else:
-        # If not present, fallback to the remote IP address
+        # Or get the direct IP address
         ip = request.META.get('REMOTE_ADDR')
     return ip
 
@@ -42,27 +50,6 @@ def check_user_token(uidb64, token, token_generator):
         return user
 
     return None
-
-def custom_login_view(request):
-    if request.method == 'POST':
-        form = CustomLoginForm(data=request.POST) 
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            return redirect('BlogPost:home')
-
-    else:
-        form = CustomLoginForm()
-
-    context = {'form': form, 'title': 'Log in', 'site_key': settings.RECAPTCHA_SITE_KEY}
-    return render(request, 'registration/login.html', context)
-
-def custom_logout_view(request):
-    if request.method == 'POST':
-        logout(request)
-        messages.success(request,'You have been logged out')
-
-    return redirect('BlogPost:home')
 
 # registration
 def signup(request):
@@ -80,6 +67,7 @@ def signup(request):
             ip_address=get_user_ip(request),
             signup_date__gt=timezone.now() - SIGNUP_COOLDOWN
         ).count()
+
         if ip_address_attempt >= 1:
             messages.error(request, "Too many signup attempts. Please try again later.")
             return redirect('BlogPost:home')
@@ -114,8 +102,29 @@ def signup(request):
     context = {'form': form, 'title': 'Sign up', 'site_key': settings.RECAPTCHA_SITE_KEY}
     return render(request, 'registration/signup.html', context)
 
+def custom_login_view(request):
+    if request.method == 'POST':
+        form = CustomLoginForm(data=request.POST) 
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('BlogPost:home')
+
+    else:
+        form = CustomLoginForm()
+
+    context = {'form': form, 'title': 'Log in', 'site_key': settings.RECAPTCHA_SITE_KEY}
+    return render(request, 'registration/login.html', context)
+
+def custom_logout_view(request):
+    if request.method == 'POST':
+        logout(request)
+        messages.success(request,'You have been logged out')
+
+    return redirect('BlogPost:home')
+
 def verify_email(request, uidb64, token):
-    user = check_user_token(uidb64, token, token_generator=email_verification_token)
+    user = check_user_token(uidb64, token, token_generator=email_verification_token_generator)
     if user:
         user.email_is_verified = True
         user.save()
@@ -137,7 +146,7 @@ def profile(request, user_id):
 @login_required
 def edit_profile(request, user_id):
     user = request.user
-    user_profile = User.objects.get(id=user_id)
+    user_profile = get_object_or_404(User, id=user_id)
     if user_profile != request.user:
         raise Http404
 
@@ -145,8 +154,8 @@ def edit_profile(request, user_id):
         form = CustomUserProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             if 'clear_profile_picture' in request.POST:
-                user.profile_picture.delete()  # deletes the file from storage
-                user.profile_picture = None   # clears the field in the model
+                user.profile_picture.delete() # deletes the file from storage
+                user.profile_picture = None # clears the field in the model
             form.save()
             return redirect('users:profile', user_id=user_id)  
     else:
@@ -162,7 +171,11 @@ def account(request):
     remaining_days = remaining_time.days
     remaining_hours = remaining_time.seconds // 3600
 
-    context = {'remaining_days': remaining_days, 'remaining_hours': remaining_hours, 'title': 'Account'}
+    context = {
+        'remaining_days': remaining_days, 
+        'remaining_hours': remaining_hours, 
+        'title': 'Account'
+    }
 
     if request.method == "POST":
         user = request.user
@@ -245,7 +258,7 @@ def change_email(request):
     return render(request, 'settings/change_email.html', context)
 
 def verify_new_email(request, uidb64, token):
-    user = check_user_token(uidb64, token, token_generator=email_verification_token)
+    user = check_user_token(uidb64, token, token_generator=email_verification_token_generator)
     if user:
         if user.pending_email:  # Ensure pending_email exists before updating
             user.email = user.pending_email
@@ -287,14 +300,15 @@ def change_password(request):
             messages.success(request, "Your password has been successfully changed.")
             
             if log_out_after_change:
-                sessions = Session.objects.filter(expire_date__gte=timezone.now()) # get non expired sessions 
-                for session in sessions:
-                    session_data = session.get_decoded() 
-                    if session_data.get('_auth_user_id') == str(request.user.id): 
-                        session.delete()
-
-                logout(request)
+                # Remove all sessions of the user from the database
+                Session.objects.filter(
+                    expire_date__gte=timezone.now(), 
+                    session_key__in=get_user_sessions(request.user)
+                ).delete()
+            
+                request.session.flush() # Delete session cookie
                 return redirect('BlogPost:home')
+
             else:
                 update_session_auth_hash(request, request.user)
                 return redirect('users:account')
@@ -366,13 +380,17 @@ def forgotten_password(request, uidb64, token):
                 new_password = form.cleaned_data.get('new_password')
                 user.set_password(new_password)
                 user.save()
+                
                 messages.success(request, "Your password has been successfully reset.")
-                # logout active sessions
-                sessions = Session.objects.filter(expire_date__gte=timezone.now()) # get non expired sessions 
-                for session in sessions:
-                    session_data = session.get_decoded() 
-                    if session_data.get('_auth_user_id') == str(user.id): 
-                        session.delete()
+
+                # Remove all sessions of the user from the database
+                Session.objects.filter(
+                    expire_date__gte=timezone.now(), 
+                    session_key__in=get_user_sessions(user)
+                ).delete()
+
+                # Delete session cookie 
+                request.session.flush()
 
                 return redirect('users:login')
         else:
@@ -380,10 +398,6 @@ def forgotten_password(request, uidb64, token):
 
         context = {'form': form, 'title': 'Password reset'}
         return render(request, 'settings/forgotten_password.html', context)
-
-    else:
-        messages.warning(request, 'The link is invalid.')
-        return redirect('users:login')
 
 def recover_account(request, uidb64, token):
     user = check_user_token(uidb64, token, token_generator=account_recovery_token)
@@ -398,12 +412,15 @@ def recover_account(request, uidb64, token):
                 user.pending_email = None
                 user.save()
                 messages.success(request, 'Your password has been reset.')
-                # logout active sessions
-                sessions = Session.objects.filter(expire_date__gte=timezone.now()) # get non expired sessions 
-                for session in sessions:
-                    session_data = session.get_decoded() 
-                    if session_data.get('_auth_user_id') == str(user.id): 
-                        session.delete()
+
+                # Log out all active sessions for the user
+                Session.objects.filter(
+                    expire_date__gte=timezone.now(), 
+                    session_key__in=get_user_sessions(user)
+                ).delete()
+                
+                # Log out current session
+                request.session.flush()
 
                 return redirect('BlogPost:home')
 

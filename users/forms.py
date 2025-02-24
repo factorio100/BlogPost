@@ -9,14 +9,6 @@ from django.forms.widgets import ClearableFileInput
 
 User = get_user_model()
 
-class CustomLoginForm(AuthenticationForm):
-    recaptcha = ReCaptchaField()   
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['username'].label = 'Email'
-        self.fields['username'].widget = forms.EmailInput()
-
 # registration
 class CustomUserCreationForm(UserCreationForm):
     recaptcha = ReCaptchaField()
@@ -26,12 +18,21 @@ class CustomUserCreationForm(UserCreationForm):
         fields = ['email', 'username', 'password1', 'password2']
 
     def clean_email(self): # using lowercase conversion for emails
-        email = self.cleaned_data.get('email')
-        if email:
-            email = email.lower()  
-            if CustomUser.objects.filter(email=email).exists():
+        email = self.cleaned_data.get('email').lower()    
+        if CustomUser.objects.filter(email=email).exists():
                 raise forms.ValidationError("This email is already in use.")
-        return email
+        # Else, email value is validated
+        # The method must return the validated value, or else Django will assume the field is missing
+        return email 
+
+class CustomLoginForm(AuthenticationForm):
+    recaptcha = ReCaptchaField()   
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['username'].label = 'Email'
+        self.fields['username'].widget = forms.EmailInput()
     
 
 # settings
@@ -56,8 +57,6 @@ class ChangeEmailForm(forms.ModelForm):
 
     def clean_pending_email(self): 
         new_email = self.cleaned_data.get('pending_email').lower()  # convert to lowercase
-        if new_email == self.instance.email:
-            raise forms.ValidationError("The new email cannot be the same as the current email.")
 
         if (
             User.objects.filter(email=new_email).exists() or 
@@ -112,16 +111,12 @@ class ChangePasswordForm(forms.Form):
         return cleaned_data
 
 class DeleteAccountForm(forms.Form):
-    password = forms.CharField(
-        label="Password", 
-        widget=forms.PasswordInput,
-        required=True
-    )
+    password = forms.CharField(label="Password", widget=forms.PasswordInput,required=True)
     recaptcha = ReCaptchaField()
 
     def __init__(self, user, *args, **kwargs):
         self.user = user
-        super(DeleteAccountForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean_password(self):
         password = self.cleaned_data.get('password')

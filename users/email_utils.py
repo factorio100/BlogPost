@@ -5,7 +5,7 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 from django.contrib.sites.shortcuts import get_current_site
-from .tokens import email_verification_token, account_recovery_token
+from .tokens import email_verification_token_generator, account_recovery_token_generator
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib import messages
 from django.urls import reverse
@@ -40,16 +40,16 @@ def send_verification_email(user, request, url, subject, email):
 
 	# Determine which token to use based on the URL (forgotten password/account recovery use default token)
 	if url in ['users:verify_email', 'users:verify_new_email']:
-		# Use custom token for email verification
-		token = email_verification_token.make_token(user)   
+		# Custom token for email verification
+		token = email_verification_token_generator.make_token(user)   
 
 	elif url == 'users:forgotten_password':
-		# default token for password reset
+		# Default token for password reset
 		token = default_token_generator.make_token(user)
 		
 	else:
-		# custom token for account recovery
-		token = account_recovery_token.make_token(user)
+		# Custom token for account recovery
+		token = account_recovery_token_generator.make_token(user)
 
 	reverse_url = reverse(url, kwargs={'uidb64': uidb64, 'token': token})
 	domain = get_current_site(request).domain 

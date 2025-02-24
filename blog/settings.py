@@ -182,10 +182,10 @@ else:
     RECAPTCHA_SITE_KEY = config('RECAPTCHA_SITE_KEY') 
     RECAPTCHA_SECRET_KEY = config('RECAPTCHA_SECRET_KEY') 
 
-# token duration
+# Token duration
 PASSWORD_RESET_TIMEOUT = 172800  # 2 days 
 
-# Set session to expire in  
+# Session duration  
 SESSION_COOKIE_AGE = 172800  # 2 days
 
 
