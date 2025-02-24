@@ -36,7 +36,7 @@ def send_verification_email(user, request, url, subject, email):
 
 	current_site = get_current_site(request)
 
-	uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+	uidb64 = urlsafe_base64_encode(force_bytes(user.id))
 
 	# Determine which token to use based on the URL (forgotten password/account recovery use default token)
 	if url in ['users:verify_email', 'users:verify_new_email']:

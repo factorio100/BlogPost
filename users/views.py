@@ -42,7 +42,7 @@ def get_user_ip(request):
 def check_user_token(uidb64, token, token_generator): 
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))
-        user = User.objects.get(pk=uid)
+        user = User.objects.get(id=uid)
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
 
