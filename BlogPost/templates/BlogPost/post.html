@@ -16,7 +16,7 @@
             | {{ post.date|date:'d M Y | H:i' }}
       </h4>
       <div class="card-body">
-        <h3><a href="{% url 'BlogPost:post' post.id %}">{{ post }}</a></h3>
+        <h3>{{ post }}</h3>
       </div>
     </div>
 {% endblock page_header %}
