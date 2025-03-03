@@ -66,9 +66,9 @@ def signup(request):
         ip_address_attempt = SignupAttemptIpAddress.objects.filter(
             ip_address=get_user_ip(request),
             signup_date__gt=timezone.now() - SIGNUP_COOLDOWN
-        ).count()
+        )
 
-        if ip_address_attempt >= 1:
+        if ip_address_attempt:
             messages.error(request, "Too many signup attempts. Please try again later.")
             return redirect('BlogPost:home')
 
