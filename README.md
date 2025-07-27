@@ -1,10 +1,9 @@
 # BlogPost
-BlogPost is a Django-powered blog application created as a learning project to deepen understanding of web development using the Django framework.
+BlogPost is a Django-powered blogapplication created as a learning project to deepen understanding of web development using the Django framework.
 
 # Features
-- User authentication (custom user model).
-- Create, edit, and delete blog posts.
-- Comment system for posts.
+-   User authentication (custom user model).
+-   Create, edit, and delete blog posts.
 -	reCAPTCHA integration for enhanced security.
 -	Email verification for user signups.
 -	Fully responsive design using Bootstrap.
@@ -21,7 +20,7 @@ BlogPost is a Django-powered blog application created as a learning project to d
 # Installation Instructions
 - Clone the repository:
 git clone <repository-url>
-cd blogpost
+cd blog
 
 - Create a virtual environment:
 python -m venv venv

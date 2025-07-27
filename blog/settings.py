@@ -30,7 +30,7 @@ if not SECRET_KEY:
 
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(',')
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
@@ -103,6 +103,13 @@ elif DEBUG == False:
     )
 }
 
+DATABASES = {
+    'default': dj_database_url.parse(
+        config('DATABASE_URL'), # postgresql internal url for production, external url for local developpement 
+    )
+}
+
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -134,10 +141,7 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -150,12 +154,13 @@ AUTH_USER_MODEL = 'users.CustomUser'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# default files
-STATIC_URL = '/static/'  
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-if DEBUG:
-    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-else: 
+STATIC_URL = 'static/'
+
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+if not DEBUG: 
     # Tell Django to copy static assets into a path called `staticfiles` (this is specific to Render)
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
     # Enable the WhiteNoise storage backend, which compresses static files to reduce disk use
@@ -173,12 +178,11 @@ EMAIL_USE_SSL = False
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend' 
 
 # reCAPTCHA
-if DEBUG:
-    # google public keys
-    RECAPTCHA_SITE_KEY = config('RECAPTCHA_SITE_KEY') 
-    RECAPTCHA_SECRET_KEY = config('RECAPTCHA_SECRET_KEY')  
-    SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error'] # need this to use public keys   
-else:
+# google public keys
+RECAPTCHA_SITE_KEY = config('RECAPTCHA_SITE_KEY') 
+RECAPTCHA_SECRET_KEY = config('RECAPTCHA_SECRET_KEY')  
+SILENCED_SYSTEM_CHECKS = ['django_recaptcha.recaptcha_test_key_error']  # need this to use public keys   
+if not DEBUG:
     RECAPTCHA_SITE_KEY = config('RECAPTCHA_SITE_KEY') 
     RECAPTCHA_SECRET_KEY = config('RECAPTCHA_SECRET_KEY') 
 
