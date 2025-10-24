@@ -55,7 +55,7 @@ def check_user_token(uidb64, token, token_generator):
 def signup(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
-
+        """
         # Check if the email has recently belonged to a deleted account
         email = request.POST.get('email')
         if SignupAttemptEmail.objects.filter(account_deleted_email=email).exists():
@@ -71,7 +71,7 @@ def signup(request):
         if ip_address_attempt:
             messages.error(request, "Too many signup attempts. Please try again later.")
             return redirect('BlogPost:home')
-
+        """
         if form.is_valid():
             # update date or create SignupAttemptIpAddress instance if new ip address
             ip_address, created = SignupAttemptIpAddress.objects.get_or_create(ip_address=get_user_ip(request))
@@ -81,7 +81,7 @@ def signup(request):
                 
             new_user = form.save()
             login(request, new_user)
-
+            """
             try:
                 send_verification_email(
                     user=new_user, 
@@ -93,7 +93,7 @@ def signup(request):
                 messages.success(request, "A verification email has been sent. Check your email.")
             except Exception as e:
                 messages.error(request, f"An error occurred while sending the verification email: {e}")
-
+            """
             return redirect('BlogPost:home')
 
     else:
