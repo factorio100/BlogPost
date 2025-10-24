@@ -51,8 +51,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 	def __str__(self):
 		return self.username 
 
-# store deleted account email, will be cleared after 15 minutes
 class SignupAttemptEmail(models.Model): 
+	"""store deleted account email, will be cleared after 15 minutes"""
 	account_deleted_email = models.EmailField(max_length=50, null=True, blank=True)
 	account_deleted_at = models.DateTimeField(auto_now_add=True) 
 	
