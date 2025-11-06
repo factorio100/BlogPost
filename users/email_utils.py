@@ -8,7 +8,6 @@ from .tokens import email_verification_token_generator, account_recovery_token_g
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib import messages
 from django.urls import reverse
-from django.conf import settings
 
 SIGNUP_COOLDOWN = timedelta(minutes=10) 
 FORGOTTEN_PASSWORD_COOLDOWN = timedelta(minutes=15)
@@ -76,10 +75,10 @@ def send_verification_email(user, request, url, subject, email):
 		f"Your email for {domain} has been changed, if you didn't change your email,"
 	 	f"click this link to reset your email and password: <{verification_url}>"
 	)
-
 	email_message = EmailMessage(subject, message, to=[email])
-	email_message.send()
 
+	email_message.send()
+	
 	user.last_email_sent = timezone.now()
 	user.save()
 

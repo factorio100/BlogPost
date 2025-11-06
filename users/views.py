@@ -55,7 +55,7 @@ def check_user_token(uidb64, token, token_generator):
 def signup(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
-        """
+        
         # Check if the email has recently belonged to a deleted account
         email = request.POST.get('email')
         if SignupAttemptEmail.objects.filter(account_deleted_email=email).exists():
@@ -68,10 +68,10 @@ def signup(request):
             signup_date__gt=timezone.now() - SIGNUP_COOLDOWN
         )
 
-        if ip_address_attempt:
-            messages.error(request, "Too many signup attempts. Please try again later.")
-            return redirect('BlogPost:home')
-        """
+        #if ip_address_attempt:
+        #    messages.error(request, "Too many signup attempts. Please try again later.")
+        #    return redirect('BlogPost:home')
+        
         if form.is_valid():
             # update date or create SignupAttemptIpAddress instance if new ip address
             ip_address, created = SignupAttemptIpAddress.objects.get_or_create(ip_address=get_user_ip(request))
@@ -81,19 +81,23 @@ def signup(request):
                 
             new_user = form.save()
             login(request, new_user)
-            """
-            try:
-                send_verification_email(
-                    user=new_user, 
-                    request=request,
-                    url='users:verify_email', 
-                    subject='Email verification',  
-                    email=new_user.email
-                )
-                messages.success(request, "A verification email has been sent. Check your email.")
-            except Exception as e:
-                messages.error(request, f"An error occurred while sending the verification email: {e}")
-            """
+            
+            if settings.DEBUG:            
+                try:
+                    send_verification_email(
+                        user=new_user, 
+                        request=request,
+                        url='users:verify_email', 
+                        subject='Email verification',  
+                        email=new_user.email
+                    )
+                    messages.success(request, "A verification email has been sent. Check your email.")
+                except Exception as e:
+                    messages.error(request, f"An error occurred while sending the verification email: {e}")
+            
+            else:
+                messages.warning(request, "📧 Email notifications are temporarily unavailable. We’re working to restore them soon.")
+
             return redirect('BlogPost:home')
 
     else:
@@ -179,30 +183,35 @@ def account(request):
 
     if request.method == "POST":
         user = request.user
-        try:
-            # Send verification email for new email
-            if request.user.pending_email:
-                send_verification_email(
-                    user=user, 
-                    request=request,
-                    url='users:verify_new_email', 
-                    subject='Email change',  
-                    email=user.pending_email
-                )   
-                messages.success(request, "Verification email sent to your new email address.")
 
-            # Send verification email for current email
-            else:
-                send_verification_email(
-                    user=user, 
-                    request=request,
-                    url='users:verify_email', 
-                    subject='Email verification',  
-                    email=user.email
-                )
-                messages.success(request, "Verification email sent to your current email address.")
-        except Exception as e:
-            messages.error(request, f"An error occurred while sending the verification email: {e}")
+        if settings.DEBUG:
+            try:
+                # Send verification email for new email
+                if request.user.pending_email:
+                    send_verification_email(
+                        user=user, 
+                        request=request,
+                        url='users:verify_new_email', 
+                        subject='Email change',  
+                        email=user.pending_email
+                    )   
+                    messages.success(request, "Verification email sent to your new email address.")
+
+                # Send verification email for current email
+                else:
+                    send_verification_email(
+                        user=user, 
+                        request=request,
+                        url='users:verify_email', 
+                        subject='Email verification',  
+                        email=user.email
+                    )
+                    messages.success(request, "Verification email sent to your current email address.")
+            except Exception as e:
+                messages.error(request, f"An error occurred while sending the verification email: {e}")
+
+        else:
+            messages.warning(request, "📧 Email notifications are temporarily unavailable. We’re working to restore them soon.")
             
     return render(request, 'settings/account.html', context)
 
@@ -222,27 +231,31 @@ def change_email(request):
             user = form.save(commit=False)
 
             user.pending_email_created_at = timezone.now() # for clearing the pending email field after a period of time
-            try:
-                # send verification email to new email
-                send_verification_email(
-                    user=user, 
-                    request=request,
-                    url='users:verify_new_email', 
-                    subject='Email change',  
-                    email=user.pending_email
-                )           
+            if settings.DEBUG:
+                try:
+                    # send verification email to new email
+                    send_verification_email(
+                        user=user, 
+                        request=request,
+                        url='users:verify_new_email', 
+                        subject='Email change',  
+                        email=user.pending_email
+                    )           
 
-                # account recovery
-                send_verification_email(
-                    user=user, 
-                    request=request,
-                    url='users:recover_account',
-                    subject='Email changed',
-                    email=user.email
-                )
-                messages.success(request, "Verification email have been sent to your new email address.")
-            except Exception as e:
-                messages.error(request, f"An error occurred while sending the verification email: {e}")
+                    # account recovery
+                    send_verification_email(
+                        user=user, 
+                        request=request,
+                        url='users:recover_account',
+                        subject='Email changed',
+                        email=user.email
+                    )
+                    messages.success(request, "Verification email have been sent to your new email address.")
+                except Exception as e:
+                    messages.error(request, f"An error occurred while sending the verification email: {e}")
+
+            else:
+                messages.warning(request, "📧 Email notifications are temporarily unavailable. We’re working to restore them soon.")
             
             user.original_email = user.email
             user.original_email_created_at = timezone.now()
@@ -347,18 +360,21 @@ def forgotten_password_email(request):
         if form.is_valid():
             email = form.cleaned_data['email']
             user = User.objects.get(email=email)
+            if settings.DEBUG:
+                try:
+                    send_verification_email(
+                        user=user, 
+                        request=request,
+                        url='users:forgotten_password',
+                        subject='Forgotten password', 
+                        email=email
+                    )
+                    messages.success(request, "A password reset email has been sent. Check your emails.")
+                except Exception as e:
+                    messages.error(request, f"An error occurred while sending the password reset email: {e}")
 
-            try:
-                send_verification_email(
-                    user=user, 
-                    request=request,
-                    url='users:forgotten_password',
-                    subject='Forgotten password', 
-                    email=email
-                )
-                messages.success(request, "A password reset email has been sent. Check your emails.")
-            except Exception as e:
-                messages.error(request, f"An error occurred while sending the password reset email: {e}")
+            else:
+                messages.warning(request, "📧 Email notifications are temporarily unavailable. We’re working to restore them soon.")
 
             return redirect('users:login')
 
