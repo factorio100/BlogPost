@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     # others
     'bootstrap4',
     'django_recaptcha',
-    'anymail',
     # django apps
     'django.contrib.admin',
     'django.contrib.auth',
@@ -140,8 +139,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
-
 
 
 # Default primary key field type
