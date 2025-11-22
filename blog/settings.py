@@ -103,12 +103,6 @@ elif DEBUG == False:
     )
 }
 
-DATABASES = {
-    'default': dj_database_url.parse(
-        config('DATABASE_URL'), # postgresql internal url for production, external url for local developpement 
-    )
-}
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
