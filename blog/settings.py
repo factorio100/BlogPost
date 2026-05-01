@@ -29,7 +29,7 @@ if not SECRET_KEY:
     raise ValueError("SECRET_KEY environment variable is not set")
 
 DEBUG = config('DEBUG', default=False, cast=bool)
-DEBUG = False
+
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS').split(',')
 
